@@ -105,7 +105,6 @@ pub fn App() -> impl IntoView {
                 <main class="main-content">
                     <Routes>
                         <Route path="" view=Home />
-                        <Route path="/" view=Home />
                         <Route path="*any" view=NotFound />
                     </Routes>
                 </main>
