@@ -1,0 +1,9 @@
+{
+  "name": "leptos-pwa-github-pages-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "trunk build && npx workbox-cli injectManifest workbox-config.js",
+    "serve": "trunk build && npx workbox-cli injectManifest workbox-config.js && trunk serve"
+  }
+}

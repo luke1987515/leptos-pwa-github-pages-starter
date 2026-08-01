@@ -1,10 +1,8 @@
 use leptos::*;
-use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
 use js_sys::Promise;
 
-use crate::app::{InstallPromptContext, BeforeInstallPromptEvent};
+use crate::app::InstallPromptContext;
 
 #[component]
 pub fn PwaInstallButton() -> impl IntoView {

@@ -1,8 +1,6 @@
 use leptos::*;
 use wasm_bindgen::JsCast;
 
-use crate::pwa_install::PwaInstallButton;
-
 #[component]
 pub fn Home() -> impl IntoView {
     let (max_iterations, set_max_iterations) = create_signal(300);
@@ -101,9 +99,6 @@ pub fn Home() -> impl IntoView {
                 </p>
             </section>
 
-            // Conditional PWA Install Button
-            <PwaInstallButton />
-
             // Features Grid
             <div class="features-grid">
                 <div class="glass-card">
@@ -142,7 +137,7 @@ pub fn Home() -> impl IntoView {
                     </div>
 
                     <div class="benchmark-grid">
-                        <!-- Left Panel: Canvas -->
+                        // Left Panel: Canvas
                         <div class="canvas-container">
                             <canvas
                                 node_ref=canvas_ref
@@ -152,7 +147,7 @@ pub fn Home() -> impl IntoView {
                             ></canvas>
                         </div>
 
-                        <!-- Right Panel: Controls & Stats -->
+                        // Right Panel: Controls & Stats
                         <div class="controls-panel">
                             <div class="slider-group">
                                 <label for="iterations">

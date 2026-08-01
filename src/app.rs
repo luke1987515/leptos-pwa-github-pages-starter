@@ -3,11 +3,9 @@ use leptos_router::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::{spawn_local, JsFuture};
-use js_sys;
 
 use crate::home::Home;
 use crate::not_found::NotFound;
-use crate::pwa_install::PwaInstallButton;
 
 // JS Bindings for the non-standard PWA installation event
 #[wasm_bindgen]
@@ -29,6 +27,7 @@ pub struct InstallPromptContext {
 }
 
 #[derive(Copy, Clone)]
+#[allow(dead_code)]
 pub struct OnlineStatusContext(pub ReadSignal<bool>);
 
 #[component]
@@ -53,10 +52,9 @@ pub fn App() -> impl IntoView {
     });
 
     // Capture beforeinstallprompt event
-    window_event_listener(ev::Custom::new("beforeinstallprompt"), move |e| {
-        let event: web_sys::Event = e.unchecked_into();
-        event.prevent_default(); // Prevent default browser prompt
-        let prompt_event: BeforeInstallPromptEvent = event.unchecked_into();
+    window_event_listener(ev::Custom::new("beforeinstallprompt"), move |e: web_sys::Event| {
+        e.prevent_default();
+        let prompt_event: BeforeInstallPromptEvent = e.unchecked_into();
         set_install_prompt.set(Some(prompt_event));
     });
 
@@ -64,26 +62,24 @@ pub fn App() -> impl IntoView {
     let (update_available, set_update_available) = create_signal(false);
     
     // Listen for custom SW update event dispatched by index.html script
-    window_event_listener(ev::Custom::new("sw-update-available"), move |_| {
-        set_update_available.set(true);
-    });
+    window_event_listener(ev::Custom::new("sw-update-available"), move |_: web_sys::CustomEvent| {
+    set_update_available.set(true);
+	});
 
-    // 4. Resolve Base Path dynamically (localhost vs GitHub Pages repo name)
-    let base_path = move || {
-        let pathname = window().location().pathname().unwrap_or_default();
-        if pathname.starts_with("/leptos-pwa-github-pages-starter") {
-            "/leptos-pwa-github-pages-starter"
-        } else {
-            ""
-        }
+    // 4. Resolve Base Path dynamically
+    let pathname = window().location().pathname().unwrap_or_default();
+    let base_path = if pathname.starts_with("/leptos-pwa-github-pages-starter") {
+        "/leptos-pwa-github-pages-starter"
+    } else {
+        ""
     };
 
     view! {
         <div class="app-container">
             // Header Navbar
             <header class="navbar">
-                <a href=move || format!("{}/", base_path()) class="brand-link">
-                    <span style="font-weight: 800;">⚡ Leptos</span>
+                <a href=format!("{}/", base_path) class="brand-link">
+                    <span style="font-weight: 800;">"⚡ Leptos"</span>
                     <span>"PWA"</span>
                 </a>
                 <div class="nav-links">
@@ -100,7 +96,7 @@ pub fn App() -> impl IntoView {
             <main class="main-content">
                 <Router>
                     <Routes>
-                        <Route path=move || format!("{}/", base_path()) view=Home />
+                        <Route path=format!("{}/", base_path) view=Home />
                         <Route path="*" view=NotFound />
                     </Routes>
                 </Router>
@@ -114,7 +110,7 @@ pub fn App() -> impl IntoView {
                 </p>
             </footer>
 
-            // Service Worker Update notification banner (Glassmorphism toast)
+            // Service Worker Update notification banner
             <Show
                 when=move || update_available.get()
                 fallback=|| view! {}
@@ -131,27 +127,22 @@ pub fn App() -> impl IntoView {
                             class="btn"
                             style="padding: 0.5rem 1rem; font-size: 0.9rem;"
                             on:click=move |_| {
-                                // Trigger controller reload by notifying Service Worker
-                                if let Ok(sw_container) = window().navigator().service_worker() {
-                                    let ready_promise = sw_container.ready();
+                                let sw_container = window().navigator().service_worker();
+                                if let Ok(ready_promise) = sw_container.ready() {
                                     spawn_local(async move {
-                                        match JsFuture::from(ready_promise).await {
-                                            Ok(reg) => {
-                                                let registration = reg.unchecked_into::<web_sys::ServiceWorkerRegistration>();
-                                                if let Some(waiting) = registration.waiting() {
-                                                    let msg = js_sys::Object::new();
-                                                    let _ = js_sys::Reflect::set(&msg, &"type".into(), &"SKIP_WAITING".into());
-                                                    let _ = waiting.post_message(&msg);
-                                                }
-                                            }
-                                            Err(err) => {
-                                                leptos::logging::log!("Failed to get SW registration ready: {:?}", err);
+                                        if let Ok(reg_val) = JsFuture::from(ready_promise).await {
+                                            let reg_js_val: JsValue = reg_val;
+                                            let registration: web_sys::ServiceWorkerRegistration = reg_js_val.unchecked_into();
+                                            if let Some(waiting) = registration.waiting() {
+                                                let msg = js_sys::Object::new();
+                                                let key: JsValue = "type".into();
+                                                let val: JsValue = "SKIP_WAITING".into();
+                                                let _ = js_sys::Reflect::set(&msg, &key, &val);
+                                                let msg_val: &JsValue = msg.as_ref();
+                                                let _ = waiting.post_message(msg_val);
                                             }
                                         }
                                     });
-                                } else {
-                                    // Service Worker unavailable in this environment
-                                    leptos::logging::log!("ServiceWorker unavailable or navigator.service_worker() returned Err.");
                                 }
                             }
                         >
