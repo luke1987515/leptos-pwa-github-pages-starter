@@ -2,6 +2,8 @@ use leptos::*;
 use leptos_router::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::{spawn_local, JsFuture};
+use js_sys;
 
 use crate::home::Home;
 use crate::not_found::NotFound;
@@ -131,14 +133,22 @@ pub fn App() -> impl IntoView {
                             on:click=move |_| {
                                 // Trigger controller reload by notifying Service Worker
                                 if let Ok(Some(sw_container)) = window().navigator().service_worker() {
-                                    _ = sw_container.ready().then(Closure::once_into_js(move |reg: JsValue| {
-                                        let registration = reg.unchecked_into::<web_sys::ServiceWorkerRegistration>();
-                                        if let Some(waiting) = registration.waiting() {
-                                            let msg = js_sys::Object::new();
-                                            _ = js_sys::Reflect::set(&msg, &"type".into(), &"SKIP_WAITING".into());
-                                            _ = waiting.post_message(&msg);
+                                    let ready_promise = sw_container.ready();
+                                    spawn_local(async move {
+                                        match JsFuture::from(ready_promise).await {
+                                            Ok(reg) => {
+                                                let registration = reg.unchecked_into::<web_sys::ServiceWorkerRegistration>();
+                                                if let Some(waiting) = registration.waiting() {
+                                                    let msg = js_sys::Object::new();
+                                                    let _ = js_sys::Reflect::set(&msg, &"type".into(), &"SKIP_WAITING".into());
+                                                    let _ = waiting.post_message(&msg);
+                                                }
+                                            }
+                                            Err(err) => {
+                                                leptos::logging::log!("Failed to get SW registration ready: {:?}", err);
+                                            }
                                         }
-                                    }));
+                                    });
                                 }
                             }
                         >
