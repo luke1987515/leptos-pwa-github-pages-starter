@@ -42,7 +42,7 @@ jobs:
       - name: Setup Node.js (for Workbox CLI)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Build Application with Trunk
         run: |
