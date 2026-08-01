@@ -66,50 +66,48 @@ pub fn App() -> impl IntoView {
     set_update_available.set(true);
 	});
 
-    // 4. Resolve Base Path dynamically
-    let pathname = window().location().pathname().unwrap_or_default();
-    let base_path = if pathname.starts_with("/leptos-pwa-github-pages-starter") {
-        "/leptos-pwa-github-pages-starter"
-    } else {
-        ""
-    };
+    // 取得 Trunk 的 public_url，若不存在預設為 ""，並移除結尾的 "/"
+	let base_path = option_env!("TRUNK_PUBLIC_URL")
+		.unwrap_or("")
+		.trim_end_matches('/');
 
     view! {
         <div class="app-container">
-            // Header Navbar
-            <header class="navbar">
-                <a href=format!("{}/", base_path) class="brand-link">
-                    <span style="font-weight: 800;">"⚡ Leptos"</span>
-                    <span>"PWA"</span>
-                </a>
-                <div class="nav-links">
-                    <span class=move || {
-                        if is_online.get() { "network-badge online" } else { "network-badge offline" }
-                    }>
-                        <span class="badge-dot"></span>
-                        {move || if is_online.get() { "連線中" } else { "離線模式" }}
-                    </span>
-                </div>
-            </header>
+            // 將 Router 搬到最外層，包裹 Header、Main 與 Footer
+            <Router base=base_path>
+                // Header Navbar
+                <header class="navbar">
+                    <A href="/" class="brand-link">
+                        <span style="font-weight: 800;">"⚡ Leptos"</span>
+                        <span>"PWA"</span>
+                    </A>
+                    <div class="nav-links">
+                        <span class=move || {
+                            if is_online.get() { "network-badge online" } else { "network-badge offline" }
+                        }>
+                            <span class="badge-dot"></span>
+                            {move || if is_online.get() { "連線中" } else { "離線模式" }}
+                        </span>
+                    </div>
+                </header>
 
-            // Main View router
-            <main class="main-content">
-                <Router base="/leptos-pwa-github-pages-starter">
-					<Routes>
-						<Route path="" view=Home />
-						<Route path="/*any" view=NotFound />
-					</Routes>
-				</Router>
-            </main>
+                // Main View router
+                <main class="main-content">
+                    <Routes>
+                        <Route path="" view=Home />
+                        <Route path="*any" view=NotFound />
+                    </Routes>
+                </main>
 
-            // Elegant Footer
-            <footer class="footer">
-                <p>
-                    "Leptos PWA on GitHub Pages Starter © 2026 • Powered by "
-                    <a href="https://leptos.dev/" target="_blank">"Rust & Leptos"</a>
-                </p>
-            </footer>
-
+                // Elegant Footer
+                <footer class="footer">
+                    <p>
+                        "Leptos PWA on GitHub Pages Starter © 2026 • Powered by "
+                        <a href="https://leptos.dev/" target="_blank">"Rust & Leptos"</a>
+                    </p>
+                </footer>
+            </Router>
+	
             // Service Worker Update notification banner
             <Show
                 when=move || update_available.get()
