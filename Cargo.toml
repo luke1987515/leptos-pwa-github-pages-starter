@@ -18,6 +18,13 @@ web-sys = { version = "0.3", features = [
     "Navigator",
     "CustomEvent",
     "console",
+    "ServiceWorker",
+    "ServiceWorkerContainer",
+    "ServiceWorkerRegistration",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d",
+    "ImageData",
+    "Location",
 ] }
 console_error_panic_hook = "0.1"
 
