@@ -1,0 +1,28 @@
+[package]
+name = "leptos-pwa-github-pages-starter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = { version = "0.6.15", features = ["csr"] }
+leptos_router = { version = "0.6.15", features = ["csr"] }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "EventTarget",
+    "Event",
+    "Navigator",
+    "CustomEvent",
+    "console",
+] }
+console_error_panic_hook = "0.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"

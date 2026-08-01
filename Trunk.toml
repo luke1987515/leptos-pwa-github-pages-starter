@@ -1,0 +1,7 @@
+[build]
+target = "index.html"
+
+[html]
+# The public URL prefix for GitHub Pages.
+# This ensures that resource imports in index.html resolve correctly to the subdirectory.
+public_url = "/leptos-pwa-github-pages-starter/"

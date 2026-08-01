@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <title>Leptos PWA Starter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Leptos PWA on GitHub Pages Starter - High performance Rust client-side app with offline support">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Leptos PWA">
+  
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Trunk Resources -->
+  <link data-trunk rel="rust" />
+  <link data-trunk rel="css" href="style.css" />
+  
+  <!-- Copy files to dist root -->
+  <link data-trunk rel="copy-file" href="static/manifest.json" />
+  <link data-trunk rel="copy-dir" href="static/icons" data-target-path="icons" />
+
+  <style>
+    /* Prevent FOUC (Flash of Unstyled Content) and set basic dark background */
+    html, body {
+      background-color: #0f172a;
+      margin: 0;
+      padding: 0;
+      color: #f8fafc;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <!-- App Mount Point -->
+  <div id="app"></div>
+
+  <!-- Service Worker Registration & Update Logic -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Use relative path for registration so it works seamlessly under subpaths (like GitHub Pages)
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+
+            // Handle updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      console.log('New update available. Dispatching event...');
+                      window.dispatchEvent(new CustomEvent('sw-update-available'));
+                    }
+                  }
+                });
+              }
+            });
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+      
+      // Handle controller change (e.g. when skipWaiting completes and new SW activates)
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('Service Worker controller changed. Reloading page...');
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
