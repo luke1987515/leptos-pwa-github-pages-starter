@@ -66,15 +66,10 @@ pub fn App() -> impl IntoView {
     set_update_available.set(true);
 	});
 
-    // 取得 Trunk 的 public_url，若不存在預設為 ""，並移除結尾的 "/"
-	let base_path = option_env!("TRUNK_PUBLIC_URL")
-		.unwrap_or("")
-		.trim_end_matches('/');
-
     view! {
         <div class="app-container">
             // 將 Router 搬到最外層，包裹 Header、Main 與 Footer
-            <Router base=base_path>
+            <Router>
                 // Header Navbar
                 <header class="navbar">
                     <A href="/" class="brand-link">
