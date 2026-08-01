@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    
+    <!-- Neon Gradient -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />  <!-- Cyan -->
+      <stop offset="50%" stop-color="#7c3aed" /> <!-- Purple -->
+      <stop offset="100%" stop-color="#ec4899" /> <!-- Pink -->
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="15" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background for maskable icon -->
+  <rect width="100%" height="100%" fill="url(#bgGrad)" rx="96" />
+
+  <!-- Stylized Geometric Rust Logo + Leptos L Shape -->
+  <g transform="translate(136, 126)" filter="url(#neonGlow)">
+    <!-- Outer Gear/Ring Elements -->
+    <circle cx="120" cy="130" r="110" fill="none" stroke="url(#neonGrad)" stroke-width="12" stroke-dasharray="10 20 40 20" />
+    
+    <!-- Inner Abstract 'L' and Hexagon -->
+    <polygon points="120,50 180,85 180,155 120,190 60,155 60,85" fill="none" stroke="url(#neonGrad)" stroke-width="8" />
+    
+    <!-- Core Lambda/L emblem -->
+    <path d="M100,90 L100,160 L150,160" fill="none" stroke="url(#neonGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>
