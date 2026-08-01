@@ -66,10 +66,15 @@ pub fn App() -> impl IntoView {
     set_update_available.set(true);
 	});
 
+	// 動態取得 public_url，並確保格式為 "/leptos-pwa-github-pages-starter"（不帶尾端斜線）
+	let base_path = option_env!("TRUNK_PUBLIC_URL")
+		.unwrap_or("")
+		.trim_end_matches('/');
+
     view! {
         <div class="app-container">
-            // 將 Router 搬到最外層，包裹 Header、Main 與 Footer
-            <Router>
+            // 必須帶上 base 屬性，告訴 Leptos 忽視專案子路徑
+			<Router base=base_path>
                 // Header Navbar
                 <header class="navbar">
                     <A href="/" class="brand-link">
