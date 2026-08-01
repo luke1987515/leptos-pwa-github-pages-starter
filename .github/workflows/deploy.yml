@@ -46,6 +46,8 @@ jobs:
           node-version: 24
 
       - name: Build Project with Trunk
+        env:
+          TRUNK_PUBLIC_URL: /leptos-pwa-github-pages-starter/
         run: |
           trunk build --release --public-url /leptos-pwa-github-pages-starter/
 
