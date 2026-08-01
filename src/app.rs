@@ -132,7 +132,7 @@ pub fn App() -> impl IntoView {
                             style="padding: 0.5rem 1rem; font-size: 0.9rem;"
                             on:click=move |_| {
                                 // Trigger controller reload by notifying Service Worker
-                                if let Ok(Some(sw_container)) = window().navigator().service_worker() {
+                                if let Ok(sw_container) = window().navigator().service_worker() {
                                     let ready_promise = sw_container.ready();
                                     spawn_local(async move {
                                         match JsFuture::from(ready_promise).await {
@@ -149,6 +149,9 @@ pub fn App() -> impl IntoView {
                                             }
                                         }
                                     });
+                                } else {
+                                    // Service Worker unavailable in this environment
+                                    leptos::logging::log!("ServiceWorker unavailable or navigator.service_worker() returned Err.");
                                 }
                             }
                         >
