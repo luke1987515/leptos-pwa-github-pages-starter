@@ -1,6 +1,8 @@
 use leptos::*;
 use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::Closure;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::{spawn_local, JsFuture};
+use js_sys::Promise;
 
 use crate::app::{InstallPromptContext, BeforeInstallPromptEvent};
 
@@ -22,14 +24,13 @@ pub fn PwaInstallButton() -> impl IntoView {
             match event.prompt() {
                 Ok(_) => {
                     leptos::logging::log!("PWA installation prompt shown to user.");
-                    let promise = event.userChoice();
+                    let promise: Promise = event.userChoice();
                     let set_prompt_clone = set_prompt;
-                    
-                    // Clear the prompt context once user makes their choice
-                    let closure = Closure::once_into_js(move |_choice: JsValue| {
+                    // Use JsFuture + spawn_local to await the Promise and then clear the prompt
+                    spawn_local(async move {
+                        let _ = JsFuture::from(promise).await;
                         set_prompt_clone.set(None);
                     });
-                    _ = promise.then(&closure);
                 }
                 Err(err) => {
                     leptos::logging::log!("Failed to prompt PWA installation: {:?}", err);
