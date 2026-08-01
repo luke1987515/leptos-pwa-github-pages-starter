@@ -1,10 +1,9 @@
 [build]
+# 指定打包後在 GitHub Pages 子目錄下的公開資源前綴
+public_url = "/leptos-pwa-github-pages-starter/"
 target = "index.html"
 
-[html]
-# The public URL prefix for GitHub Pages.
-# This ensures that resource imports in index.html resolve correctly to the subdirectory.
-public_url = "/leptos-pwa-github-pages-starter/"
-
+# 將 static/ 資料夾裡面的內容複製到 dist/ 中
+# 這樣 static/icons/ 就會正確輸出到 dist/icons/
 [[trunk.copy_dir]]
-data = "static"
+dir = "static"

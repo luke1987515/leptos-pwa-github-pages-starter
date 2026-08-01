@@ -94,12 +94,12 @@ pub fn App() -> impl IntoView {
 
             // Main View router
             <main class="main-content">
-                <Router>
-                    <Routes>
-                        <Route path=format!("{}/", base_path) view=Home />
-                        <Route path="*" view=NotFound />
-                    </Routes>
-                </Router>
+                <Router base="/leptos-pwa-github-pages-starter">
+					<Routes>
+						<Route path="" view=Home />
+						<Route path="/*any" view=NotFound />
+					</Routes>
+				</Router>
             </main>
 
             // Elegant Footer

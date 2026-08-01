@@ -1,19 +1,28 @@
-name: Build and Deploy PWA
+name: Deploy Leptos PWA to GitHub Pages
 
 on:
   push:
     branches:
       - main
 
+# 設定 GitHub Token 的權限以允許部署至 Pages
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
-  build-deploy:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Source Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Rust Toolchain
@@ -21,44 +30,45 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Cache Cargo Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+      # 使用優化的 Rust 快取
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Install Trunk
         uses: jetli/trunk-action@v0.5.0
         with:
           version: 'latest'
 
+      # 如果您有使用 workbox-config.js 處理 PWA Service Worker 才需要這步
       - name: Setup Node.js (for Workbox CLI)
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Build Application with Trunk
+      - name: Build Project with Trunk
         run: |
-          trunk build --release --public-url "/leptos-pwa-github-pages-starter/"
+          trunk build --release
 
+      # 如果使用 Workbox 注入 Manifest (選用，依您的 PWA 架構而定)
       - name: Inject Service Worker Precache Manifest
         run: |
-          npx workbox-cli injectManifest workbox-config.js
+          if [ -f "workbox-config.js" ]; then
+            npx workbox-cli injectManifest workbox-config.js
+          fi
 
+      # 複製 index.html 為 404.html 以支援前端路由 (SPA)
       - name: Duplicate index.html to 404.html
         run: |
           cp dist/index.html dist/404.html
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: dist
-          branch: gh-pages
-          clean: true
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
