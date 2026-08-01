@@ -66,27 +66,10 @@ pub fn App() -> impl IntoView {
         set_update_available.set(true);
     });
 
-	let raw_base = option_env!("TRUNK_PUBLIC_URL").unwrap_or("");
-    let base_path_str = if raw_base.is_empty() || raw_base == "/" {
-        "".to_string()
-    } else {
-        let formatted = if raw_base.starts_with('/') {
-            raw_base.to_string()
-        } else {
-            format!("/{}", raw_base)
-        };
-        formatted.trim_end_matches('/').to_string()
-    };
-
-    // 關鍵修復：把 String 轉為 &'static str，滿足 Router 的生命週期需求
-    let base_path: &'static str = Box::leak(base_path_str.into_boxed_str());
-
-    web_sys::console::log_1(&format!("Leptos Router Base Path: '{}'", base_path).into());
-
     view! {
         <div class="app-container">
             // 這裡直接傳入 base_path（型態已經是 &'static str，不需要加 & 符號）
-            <Router base=base_path>
+            <Router>
                 <header class="navbar">
                     <A href="/" class="brand-link">
                         <span style="font-weight: 800;">"⚡ Leptos"</span>
@@ -104,7 +87,7 @@ pub fn App() -> impl IntoView {
 
                 <main class="main-content">
                     <Routes>
-                        <Route path="" view=Home />
+                        <Route path="/" view=Home />
                         <Route path="*any" view=NotFound />
                     </Routes>
                 </main>

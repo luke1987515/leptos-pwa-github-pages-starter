@@ -46,10 +46,8 @@ jobs:
           node-version: 24
 
       - name: Build Project with Trunk
-        env:
-          TRUNK_PUBLIC_URL: /leptos-pwa-github-pages-starter/
         run: |
-          trunk build --release --public-url /leptos-pwa-github-pages-starter/
+          trunk build --release
 
       # 如果使用 Workbox 注入 Manifest (選用，依您的 PWA 架構而定)
       - name: Inject Service Worker Precache Manifest
