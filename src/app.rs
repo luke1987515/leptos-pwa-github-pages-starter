@@ -63,19 +63,30 @@ pub fn App() -> impl IntoView {
     
     // Listen for custom SW update event dispatched by index.html script
     window_event_listener(ev::Custom::new("sw-update-available"), move |_: web_sys::CustomEvent| {
-    set_update_available.set(true);
-	});
+        set_update_available.set(true);
+    });
 
-	// 動態取得 public_url，並確保格式為 "/leptos-pwa-github-pages-starter"（不帶尾端斜線）
-	let base_path = option_env!("TRUNK_PUBLIC_URL")
-		.unwrap_or("")
-		.trim_end_matches('/');
+	let raw_base = option_env!("TRUNK_PUBLIC_URL").unwrap_or("");
+    let base_path_str = if raw_base.is_empty() || raw_base == "/" {
+        "".to_string()
+    } else {
+        let formatted = if raw_base.starts_with('/') {
+            raw_base.to_string()
+        } else {
+            format!("/{}", raw_base)
+        };
+        formatted.trim_end_matches('/').to_string()
+    };
+
+    // 關鍵修復：把 String 轉為 &'static str，滿足 Router 的生命週期需求
+    let base_path: &'static str = Box::leak(base_path_str.into_boxed_str());
+
+    web_sys::console::log_1(&format!("Leptos Router Base Path: '{}'", base_path).into());
 
     view! {
         <div class="app-container">
-            // 必須帶上 base 屬性，告訴 Leptos 忽視專案子路徑
-			<Router base=base_path>
-                // Header Navbar
+            // 這裡直接傳入 base_path（型態已經是 &'static str，不需要加 & 符號）
+            <Router base=base_path>
                 <header class="navbar">
                     <A href="/" class="brand-link">
                         <span style="font-weight: 800;">"⚡ Leptos"</span>
@@ -91,16 +102,14 @@ pub fn App() -> impl IntoView {
                     </div>
                 </header>
 
-                // Main View router
                 <main class="main-content">
                     <Routes>
                         <Route path="" view=Home />
-						<Route path="/" view=Home />
+                        <Route path="/" view=Home />
                         <Route path="*any" view=NotFound />
                     </Routes>
                 </main>
 
-                // Elegant Footer
                 <footer class="footer">
                     <p>
                         "Leptos PWA on GitHub Pages Starter © 2026 • Powered by "
@@ -108,7 +117,7 @@ pub fn App() -> impl IntoView {
                     </p>
                 </footer>
             </Router>
-	
+
             // Service Worker Update notification banner
             <Show
                 when=move || update_available.get()
