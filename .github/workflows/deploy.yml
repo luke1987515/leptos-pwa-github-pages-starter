@@ -3,7 +3,7 @@ name: Deploy Leptos PWA to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - main # 如果您的預設分支是 master，請改為 master
 
 # 設定 GitHub Token 的權限以允許部署至 Pages
 permissions:
@@ -11,6 +11,7 @@ permissions:
   pages: write
   id-token: write
 
+# 避免重複觸發時覆蓋掉正在執行的任務
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -30,36 +31,18 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      # 使用優化的 Rust 快取
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Install Trunk
-        uses: jetli/trunk-action@v0.5.0
-        with:
-          version: 'latest'
-
-      # 如果您有使用 workbox-config.js 處理 PWA Service Worker 才需要這步
-      - name: Setup Node.js (for Workbox CLI)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
+      - name: Download and Install Trunk
+        run: |
+          wget -qO- https://github.com/trunk-rs/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C /usr/local/bin
+          trunk --version
 
       - name: Build Project with Trunk
         run: |
+          # 使用 --release 打包專案
           trunk build --release
-
-      # 如果使用 Workbox 注入 Manifest (選用，依您的 PWA 架構而定)
-      - name: Inject Service Worker Precache Manifest
-        run: |
-          if [ -f "workbox-config.js" ]; then
-            npx workbox-cli injectManifest workbox-config.js
-          fi
-
-      # 複製 index.html 為 404.html 以支援前端路由 (SPA)
-      - name: Duplicate index.html to 404.html
-        run: |
-          cp dist/index.html dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -67,6 +50,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # 打包輸出的目錄（預設為 dist）
           path: './dist'
 
       - name: Deploy to GitHub Pages
