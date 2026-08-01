@@ -1,1 +1,6 @@
 /target
+/dist
+**/*.rs.bk
+.idea/
+.vscode/
+*.swp
